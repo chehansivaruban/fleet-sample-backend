@@ -8,8 +8,14 @@ const router = express.Router();
 // Create User
 router.post("/create", async (req, res) => {
   try {
-    const { email, username, password } = req.body;
-    const newUser = new User({ email, username, password });
+    const { email, username, password, firstName, lastName } = req.body;
+    const newUser = new User({
+      email,
+      username,
+      password,
+      firstName,
+      lastName,
+    });
     await newUser.save();
     res.status(201).json({
       isSuccess: true,
@@ -19,6 +25,8 @@ router.post("/create", async (req, res) => {
         userId: newUser._id,
         email: newUser.email,
         username: newUser.username,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
       },
     });
   } catch (err) {
@@ -30,12 +38,12 @@ router.post("/create", async (req, res) => {
     });
   }
 });
-
 // Login User
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({
         isSuccess: false,
@@ -63,7 +71,14 @@ router.post("/login", async (req, res) => {
       isSuccess: true,
       errorCode: 0,
       message: "Login successful",
-      data: { token },
+      data: {
+        token,
+        id: user._id,
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`, // Combine first and last name for full name
+        status: user.status || "active", // Default status to "active" if not present
+        role: user.role || "user", // Default role to "user" if not present
+      },
     });
   } catch (err) {
     res.status(500).json({
